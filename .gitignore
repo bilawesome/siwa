@@ -4,3 +4,4 @@ data/*.*
 notes
 data.db
 .hypothesis/
+.env
