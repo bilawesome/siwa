@@ -1,8 +1,45 @@
-from typing import Any, Dict
+import logging
+from typing import Any, Dict, List
+from pydantic import BaseModel, ValidationError
+
 from apis.crypto_api import CryptoAPI
 import requests
 from apis import utils
 from apis.utils import MissingDataException
+
+
+logger = logging.getLogger()
+
+
+class CryptoCompareSingleCoinInfo(BaseModel):
+    Id: str
+    Name: str
+
+
+class CryptoCompareSingleCoinRawUSD(BaseModel):
+    LASTUPDATE: int
+    MKTCAP: float
+
+
+class CryptoCompareSingleCoinRaw(BaseModel):
+    Id: str
+    USD: CryptoCompareSingleCoinRawUSD
+
+
+class CryptoCompareSingleCoin(BaseModel):
+    CoinInfo: CryptoCompareSingleCoinInfo
+    RAW: CryptoCompareSingleCoinRaw
+
+
+class CryptoCompareData(BaseModel):
+    Message: str
+    Type: int
+    Metadata: Dict
+    SponsoredData: List
+    Data: List[CryptoCompareSingleCoin]
+
+    # class Config:
+    #     extra = "forbid"
 
 
 class CryptoCompareAPI(CryptoAPI):
@@ -35,7 +72,7 @@ class CryptoCompareAPI(CryptoAPI):
         """
         super().__init__(
             url="https://min-api.cryptocompare.com/data/top/mktcapfull",
-            source='cryptocompare'
+            source="cryptocompare",
         )
 
     @utils.handle_request_errors
@@ -64,8 +101,7 @@ class CryptoCompareAPI(CryptoAPI):
             data = response.json()
         else:
             raise requests.exceptions.RequestException(
-                f"Received status code {response.status_code} "
-                f"for URL: {self.url}"
+                f"Received status code {response.status_code} " f"for URL: {self.url}"
             )
         missing_count = 0
         for coin in data[self.DATA]:
@@ -102,3 +138,12 @@ class CryptoCompareAPI(CryptoAPI):
                 "last_updated": last_updated,
             }
         return market_data
+
+    def validate_api_data(self, data: CryptoCompareData):
+        """Validate data returned by external API."""
+        try:
+            CryptoCompareData(**data)
+        except ValidationError as e:
+            logger.warning(e)
+        else:
+            logger.ifo("CryptoCompare response data passed validation!")
