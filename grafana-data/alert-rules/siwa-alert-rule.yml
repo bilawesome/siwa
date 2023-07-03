@@ -1,0 +1,29 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: Siwa Alerts
+      folder: Siwa Alerts
+      interval: 1m
+      rules:
+        - uid: af6f0f4e-c68b-4daa-b19c-78b5c75ed658
+          title: Siwa Error Alert
+          condition: A
+          data:
+            - refId: A
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: e5ffd78e-19f8-4b0d-9607-52d5db0b2038
+              model:
+                editorMode: builder
+                expr: count_over_time({container="siwa", logstream="stderr"} [1m]) > 0
+                hide: false
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: A
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          isPaused: false

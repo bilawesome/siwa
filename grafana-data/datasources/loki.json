@@ -1,0 +1,6 @@
+{
+    "name": "loki",
+    "type": "loki",
+    "url": "http://loki:3100",
+    "access": "proxy"
+}
