@@ -110,8 +110,6 @@ class CoinGeckoAPI(CryptoAPI):
                 A dictionary with market cap as keys and coin details as values.
         """
 
-        self.validate_api_data(data)
-
         market_data = {}
         for coin in data:
             name = coin[self.NAME_KEY]
@@ -123,11 +121,12 @@ class CoinGeckoAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data(self, data: List[CoinGeckoData]):
-        """Validate data returned by external API."""
+    def validate_api_data_with_pydantic(self, data: List[CoinGeckoData]):
+        """Validate data pulled from external API using Pydantic."""
         for coin in data:
             try:
                 CoinGeckoData(**coin)
             except ValidationError as e:
-                logger.warning(e)
-                continue
+                raise utils.ExternalAPIDataValidationError(
+                    f"Data pulled from CoinGecko does not match pre-defined Pydantic data structure: {e}"
+                )

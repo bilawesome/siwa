@@ -3,6 +3,10 @@ from apis import utils
 import os
 import json
 
+import openai
+
+import constants as c
+
 
 class CryptoAPI:
     """
@@ -21,7 +25,7 @@ class CryptoAPI:
             Abstract method to extract market cap data.
     """
 
-    API_KEYS_FILE = 'api_keys.json'
+    API_KEYS_FILE = "api_keys.json"
 
     def __init__(self, url: str, source: str) -> None:
         """
@@ -50,12 +54,13 @@ class CryptoAPI:
         if data is None:
             return None
         else:
+            self.validate_api_data(data)
             market_data = self.extract_market_cap(data)
 
         # Store market data in the database
-        utils.create_market_cap_database()
+        utils.create_market_cap_database(c.LOGGING_PATH)
         utils.store_market_cap_data(
-            market_data=market_data, source=self.source
+            market_data=market_data, source=self.source, db_path=c.LOGGING_PATH
         )
         return market_data
 
@@ -99,7 +104,7 @@ class CryptoAPI:
             Exception: If the API key for the provider is not found in the
             environment variables.
         """
-        api_key = os.getenv(f"{api_provider_name.upper()}_API_KEY")
+        api_key = os.environ.get(f"{api_provider_name.upper()}_API_KEY")
         if not api_key:
             raise Exception(
                 f"No API key found for {api_provider_name}. "
@@ -107,3 +112,58 @@ class CryptoAPI:
                 f"{api_provider_name.upper()}_API_KEY."
             )
         return api_key
+
+    def validate_api_data(self, data):
+        """Validate data returned by external API."""
+        try:
+            self.validate_api_data_with_chatgpt(data)
+        except utils.ChatGPTDataValidationError:
+            # If ChatGPT fails validation of data, then validate data using pydantic
+            # instead as a backup
+            self.validate_api_data_with_pydantic(data)
+
+    def validate_api_data_with_chatgpt(self, data):
+        """Validate data returned by external API using ChatGPT.
+
+        Parameters:
+            data (obj): Data pulled from an external API.
+
+        Returns:
+            None.
+
+        Raises:
+            Exception: If the data is classified as garbage by ChatGPT.
+        """
+        try:
+            # Use ChatGPT to validate data
+            chat_completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Does this data pulled from external API imply a successful response? answer yes or no only: {data}"[
+                            0:500
+                        ],
+                    }
+                ],
+            )
+            if "no" in chat_completion.choices[0].message.content.lower():
+                raise utils.ExternalAPIDataValidationError(
+                    f"Market cap data pulled from {self.source} failed ChatGPT validation!"
+                )
+        except Exception as e:
+            raise utils.ChatGPTDataValidationError(
+                f"ChatGPT failed validating data pulled from {self.source}. Unexpected error encountered: {e}"
+            )
+
+    def validate_api_data_with_pydantic(self, data):
+        """Abstract method to validate data pulled from external API using Pydantic.
+
+        Parameters:
+            data (Any): Data received from API.
+
+        Raises:
+            NotImplementedError:
+                If this method is not implemented by a subclass.
+        """
+        raise NotImplementedError

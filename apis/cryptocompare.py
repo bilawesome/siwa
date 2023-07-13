@@ -139,11 +139,11 @@ class CryptoCompareAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data(self, data: CryptoCompareData):
-        """Validate data returned by external API."""
+    def validate_api_data_with_pydantic(self, data: CryptoCompareData):
+        """Validate data pulled from external API using Pydantic."""
         try:
             CryptoCompareData(**data)
         except ValidationError as e:
-            logger.warning(e)
-        else:
-            logger.ifo("CryptoCompare response data passed validation!")
+            raise utils.ExternalAPIDataValidationError(
+                f"Data pulled from CryptoCompare does not match pre-defined Pydantic data structure: {e}"
+            )

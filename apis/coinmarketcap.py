@@ -31,10 +31,10 @@ class CoinMarketCapAPI(CryptoAPI):
         """
         Constructs all the necessary attributes for the CoinMarketCapAPI object.
         """
-        source = 'coinmarketcap'
+        source = "coinmarketcap"
         super().__init__(
             url="https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
-            source=source
+            source=source,
         )
         self.headers = {
             self.CMC_PRO_API_KEY: self.get_api_key(source),
@@ -51,12 +51,8 @@ class CoinMarketCapAPI(CryptoAPI):
         Returns:
             Dict[str, Any]: A dictionary with data fetched from API.
         """
-        parameters = {
-            self.LIMIT: N
-        }
-        response = requests.get(
-            self.url, headers=self.headers, params=parameters
-        )
+        parameters = {self.LIMIT: N}
+        response = requests.get(self.url, headers=self.headers, params=parameters)
         data = response.json()
         return data
 
@@ -81,3 +77,8 @@ class CoinMarketCapAPI(CryptoAPI):
                 "last_updated": last_updated,
             }
         return market_data
+
+    def validate_api_data_with_pydantic(self, data):
+        """Validate data pulled from external API using Pydantic."""
+        # TODO: Add pydantic validation here
+        pass
