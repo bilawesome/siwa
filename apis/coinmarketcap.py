@@ -1,7 +1,31 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from apis.crypto_api import CryptoAPI
 import requests
+import json
+
+from pydantic import BaseModel, ValidationError
+
 from apis import utils
+
+
+class CoinMarketCapMarketCapData(BaseModel):
+    id: int
+    name: str
+    symbol: str
+    slug: str
+    num_market_pairs: int
+    date_added: str
+    tags: list[str]
+    max_supply: Optional[float]
+    circulating_supply: float
+    total_supply: float
+    platform: Optional[dict]
+    cmc_rank: int
+    last_updated: str
+    quote: dict
+
+    # class Config:
+    #     allow_population_by_field_name = True
 
 
 class CoinMarketCapAPI(CryptoAPI):
@@ -78,7 +102,13 @@ class CoinMarketCapAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data_with_pydantic(self, data):
+    def validate_api_data(self, data: List[CoinMarketCapMarketCapData]):
         """Validate data pulled from external API using Pydantic."""
-        # TODO: Add pydantic validation here
-        pass
+        for coin in data[self.DATA]:
+            print("coinmarketcap coind data", json.dumps(coin))
+            try:
+                CoinMarketCapMarketCapData(**coin)
+            except ValidationError as e:
+                raise utils.ExternalAPIDataValidationError(
+                    f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+                )

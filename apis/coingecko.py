@@ -2,8 +2,7 @@ import logging
 from pydantic import BaseModel, ValidationError
 
 from datetime import datetime
-from typing import List, Optional
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from apis.crypto_api import CryptoAPI
 import requests
 from apis import utils
@@ -41,6 +40,34 @@ class CoinGeckoData(BaseModel):
 
     # class Config:
     #     extra = "forbid"
+
+
+class CoinGeckoMarketCapData(BaseModel):
+    id: str
+    symbol: str
+    name: str
+    image: str
+    current_price: float
+    market_cap: float
+    market_cap_rank: int
+    fully_diluted_valuation: Optional[float]
+    total_volume: float
+    high_24h: float
+    low_24h: float
+    price_change_24h: float
+    price_change_percentage_24h: float
+    market_cap_change_24h: float
+    market_cap_change_percentage_24h: float
+    circulating_supply: float
+    total_supply: Optional[float]
+    ath: float
+    ath_change_percentage: float
+    ath_date: str
+    roi: Optional[dict]
+    last_updated: str
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 class CoinGeckoAPI(CryptoAPI):
@@ -121,12 +148,12 @@ class CoinGeckoAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data_with_pydantic(self, data: List[CoinGeckoData]):
+    def validate_api_data(self, data: List[CoinGeckoMarketCapData]):
         """Validate data pulled from external API using Pydantic."""
         for coin in data:
             try:
-                CoinGeckoData(**coin)
+                CoinGeckoMarketCapData(**coin)
             except ValidationError as e:
                 raise utils.ExternalAPIDataValidationError(
-                    f"Data pulled from CoinGecko does not match pre-defined Pydantic data structure: {e}"
+                    f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
                 )

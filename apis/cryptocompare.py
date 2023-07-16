@@ -22,7 +22,6 @@ class CryptoCompareSingleCoinRawUSD(BaseModel):
 
 
 class CryptoCompareSingleCoinRaw(BaseModel):
-    Id: str
     USD: CryptoCompareSingleCoinRawUSD
 
 
@@ -31,7 +30,7 @@ class CryptoCompareSingleCoin(BaseModel):
     RAW: CryptoCompareSingleCoinRaw
 
 
-class CryptoCompareData(BaseModel):
+class CryptoCompareMarketCapData(BaseModel):
     Message: str
     Type: int
     Metadata: Dict
@@ -139,11 +138,12 @@ class CryptoCompareAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data_with_pydantic(self, data: CryptoCompareData):
+    def validate_api_data(self, data: List[CryptoCompareSingleCoin]):
         """Validate data pulled from external API using Pydantic."""
-        try:
-            CryptoCompareData(**data)
-        except ValidationError as e:
-            raise utils.ExternalAPIDataValidationError(
-                f"Data pulled from CryptoCompare does not match pre-defined Pydantic data structure: {e}"
-            )
+        for coin in data:
+            try:
+                CryptoCompareSingleCoin(**coin)
+            except ValidationError as e:
+                raise utils.ExternalAPIDataValidationError(
+                    f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+                )
