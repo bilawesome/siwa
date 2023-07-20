@@ -3,16 +3,16 @@ version: "3"
 # name: siwa
 
 services:
-  # siwa:
-  #   build:
-  #     context: .
-  #   container_name: siwa
-  #   image: siwa
-  #   ports:
-  #     - "81:16556"
-  #   labels:
-  #     logging: "promtail"
-  #     logging_jobname: "containerlogs"
+  siwa:
+    build:
+      context: .
+    container_name: siwa
+    image: siwa
+    ports:
+      - "81:16556"
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
   # prometheus:
   #   container_name: prometheus-svc
   #   image: prom/prometheus
