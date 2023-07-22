@@ -12,7 +12,7 @@ COPY ./ /app/
 
 EXPOSE 5000
 
-# ENV FLASK_APP=endpoint.py
+ENV FLASK_APP=endpoint.py
 # CMD flask run -h 0.0.0 -p 5000
 # CMD python setup.py
 CMD python siwa.py --datafeeds mcap1000
