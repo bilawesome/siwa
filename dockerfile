@@ -1,5 +1,5 @@
 # FROM python:3.10.5-alpine3.16 as prod
-FROM python:3.7.6
+FROM python:3
 # FROM arm64v8/python:latest
 
 RUN mkdir /app/
