@@ -61,7 +61,8 @@ class CoinMarketCapAPI(CryptoAPI):
             source=source,
         )
         self.headers = {
-            self.CMC_PRO_API_KEY: self.get_api_key(source),
+            # self.CMC_PRO_API_KEY: self.get_api_key(source),
+            self.CMC_PRO_API_KEY: "cbd5f7ca-d633-46ab-841a-3796214d9339",
         }
 
     @utils.handle_request_errors
@@ -112,6 +113,3 @@ class CoinMarketCapAPI(CryptoAPI):
                 raise utils.ExternalAPIDataValidationError(
                     f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
                 )
-
-    def get_api_key(self):
-        return "cbd5f7ca-d633-46ab-841a-3796214d9339"
