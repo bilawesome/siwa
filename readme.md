@@ -34,3 +34,28 @@
 * 5 stablecoins -> Tether
 * 6 stablecoins -> DAI
 * 7 Twitter -> sentiment per user ID per last n tweets
+
+## Monitoring Architecture
+The monitoring architecture for Siwa/Overlay comprises of three services: Grafana, Grafana Loki, and Promtail, each of which are described below. These three are configured in the docker-compose.yml file.
+
+### Grafana 
+    - Dashboarding and data visualization tool
+    - Open-source
+    - Allows you to query, visualize, and alert on data coming from various sources
+    - Allows sending to telegram, discord, email
+    - Allows creating Alert Rules based on user-specified conditions
+    - Pulls data from multiple data sources (e.g. Loki, Prometheus)
+
+### Grafana Loki
+    - Logs aggregation tool 
+    - Open-source
+    - Multi-tenant
+    - LogQL - query language for Loki
+
+### Promtail
+    - agent/client that pushes logs to Loki
+    - Scrapes logs from apps and pushes them to Loki
+    - in this repot, scrape configuration is defined in promtail-config.yml file
+
+### Run the monitoring architecture with docker
+`docker-compose up`
