@@ -58,4 +58,6 @@ The monitoring architecture for Siwa/Overlay comprises of three services: Grafan
     - in this repot, scrape configuration is defined in promtail-config.yml file
 
 ### Run the monitoring architecture with docker
-`docker-compose up`
+```
+docker-compose up
+```
