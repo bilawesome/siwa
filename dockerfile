@@ -13,10 +13,11 @@ COPY ./ /app/
 # solved.... goto => site-packages/parsimonious/expressions.py and change import line to say..... from inspect import getfullargspec
 # /usr/local/lib/python3.11/site-packages
 # /usr/local/lib/python3.11/site-packages/parsimonious/expressions.py
+RUN var="from inspect import getfullargspec" && sed -i "1s/.*/$var/" parsimonious/expressions.py
 
 EXPOSE 5000
 
-ENV FLASK_APP=endpoint.py
+# ENV FLASK_APP=endpoint.py
 # CMD flask run -h 0.0.0 -p 5000
 # CMD python setup.py
 CMD python siwa.py --datafeeds mcap1000
