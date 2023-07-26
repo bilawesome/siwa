@@ -65,6 +65,19 @@ docker-compose up
 ## Monitoring Architecture Deployment
 Here's how to deploy the monitoring architecture in an Ubuntu EC2 instance in AWS.
 
+### Pre-requisites
+- Launch AWS EC2 Ubuntu instance 
+- Add the following inbound rules in a Security Group attached to the instance
+
+    Type | Protocol | Port Range | Source
+    --- | --- | --- | ---
+    HTTP | TCP | 80 | 0.0.0.0/0 
+    Custom TCP | TCP | 3000 | 0.0.0.0/0 
+    Custom TCP | TCP | 3100 | 0.0.0.0/0 
+    Custom TCP | TCP | 81 | 0.0.0.0/0 
+    SSH | TCP | 22 | 0.0.0.0/0 
+
+### Deployment Steps
 Connect to the EC2 instance via SSH and run the following commands one-by-one:
 ```
 # Create directory for monitoring
