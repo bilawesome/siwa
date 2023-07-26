@@ -13,6 +13,12 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
+    env_file: .env
+    environment:
+      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
+      # sometimes the console won't show print messages,
+      # using PYTHONUNBUFFERED: 1 can fix this
+      PYTHONUNBUFFERED: 1
   # prometheus:
   #   container_name: prometheus-svc
   #   image: prom/prometheus
