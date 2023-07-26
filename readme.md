@@ -57,7 +57,56 @@ The monitoring architecture for Siwa/Overlay comprises of three services: Grafan
     - Scrapes logs from apps and pushes them to Loki
     - in this repot, scrape configuration is defined in promtail-config.yml file
 
-### Run the monitoring architecture with docker
+### Run the monitoring architecture with docker locally
 ```
 docker-compose up
+```
+
+## Monitoring Architecture Deployment
+Here's how to deploy the monitoring architecture in an Ubuntu EC2 instance in AWS.
+
+### Connect to the EC2 instance via SSH and run the following commands one-by-one:
+```
+# Create directory for monitoring
+mkdir chain-monitoring
+cd chain-monitoring
+
+# Install docker and docker-compose
+sudo apt-get update
+sudo apt-get install docker
+sudo apt  install docker-compose
+
+# Clone siwa repo
+git clone https://github.com/bilawesome/siwa.git
+
+# Add group membership for the default ec2-user so you can run all docker commands without using the sudo command
+sudo usermod -a -G docker ubuntu
+id ubuntu
+
+# Reload a Linux user's group assignments to docker w/o logout
+newgrp docker
+
+# Enable docker service at AMI boot time:
+sudo systemctl enable docker.service
+
+# Start the Docker service:
+sudo systemctl start docker.service
+
+# Copy the appropriate docker-compose binary from GitHub:
+sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+# Fix permissions after download:
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Verify success:
+docker-compose version
+
+# Write .env file for SIWA. Replace the environment variable values with actual ones.
+echo -e "COINMARKETCAP_API_KEY=abcde\nSOME_SECRET_KEY=xxx-xxx-xxx" > .env
+
+# Run docker containers
+docker-compose up -d
+
+# Verify that containers are running
+docker ps
 ```
