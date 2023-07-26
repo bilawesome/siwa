@@ -61,8 +61,7 @@ class CoinMarketCapAPI(CryptoAPI):
             source=source,
         )
         self.headers = {
-            # self.CMC_PRO_API_KEY: self.get_api_key(source),
-            self.CMC_PRO_API_KEY: "cbd5f7ca-d633-46ab-841a-3796214d9339",
+            self.CMC_PRO_API_KEY: self.get_api_key(source),
         }
 
     @utils.handle_request_errors
