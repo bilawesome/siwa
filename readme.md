@@ -65,7 +65,7 @@ docker-compose up
 ## Monitoring Architecture Deployment
 Here's how to deploy the monitoring architecture in an Ubuntu EC2 instance in AWS.
 
-### Connect to the EC2 instance via SSH and run the following commands one-by-one:
+Connect to the EC2 instance via SSH and run the following commands one-by-one:
 ```
 # Create directory for monitoring
 mkdir chain-monitoring
