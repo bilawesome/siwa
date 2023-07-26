@@ -7,7 +7,7 @@ from apis.cryptocompare import CryptoCompareAPI as cryptocompare
 
 
 class MCAP1000(DataFeed):
-    NAME = 'mcap1000'
+    NAME = "mcap1000"
     ID = 2
     HEARTBEAT = 180
     DATAPOINT_DEQUE = deque([], maxlen=100)
@@ -15,20 +15,20 @@ class MCAP1000(DataFeed):
 
     @classmethod
     def process_source_data_into_siwa_datapoint(cls):
-        '''
-            Process data from multiple sources
-        '''
+        """
+        Process data from multiple sources
+        """
         res = []
         for source in [
             cryptocompare,
             coinmarketcap,
-            coingecko
+            coingecko,
         ]:
             market_data = source().fetch_data_by_mcap(cls.N)
             if market_data is None:
                 continue
             mcaps = sorted(list(market_data.keys()), reverse=True)
-            res.append(sum(mcaps[:cls.N]))
+            res.append(sum(mcaps[: cls.N]))
         if sum(res) == 0:
             return cls.DATAPOINT_DEQUE[-1]  # Should fail if DEQUE is empty
         else:
