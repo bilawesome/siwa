@@ -1,12 +1,12 @@
 # from feeds.gauss import gauss
-from feeds.crypto_indices import mcap1000, dogcoins
+from feeds.crypto_indices import mcap1000, memecoins
 from feeds.stablecoins import stablecoins as s
 from feeds import test_feed
 from feeds.twitter import twitter
 
 Test = test_feed.Test
 # Gauss = gauss.Gauss
-MCAP1000, DogCoins = mcap1000.MCAP1000, dogcoins.DogCoins
+MCAP1000, MemeCoins = mcap1000.MCAP1000, memecoins.MemeCoins
 USDC, BUSD, Tether, Dai = s.USDC, s.BUSD, s.Tether, s.Dai
 Twitter = twitter.Twitter
 
@@ -18,7 +18,7 @@ all_feeds = {
     # Gauss.NAME: Gauss,
     Test.NAME: Test,
     MCAP1000.NAME: MCAP1000,
-    DogCoins.NAME: DogCoins,
+    MemeCoins.NAME: MemeCoins,
     USDC.NAME: USDC,
     BUSD.NAME: BUSD,
     Tether.NAME: Tether,

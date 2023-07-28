@@ -24,7 +24,7 @@ class MCAP1000(DataFeed):
             coinmarketcap,
             coingecko,
         ]:
-            market_data = source().fetch_data_by_mcap(cls.N)
+            market_data = source().fetch_mcap_by_rank(cls.N)
             if market_data is None:
                 continue
             mcaps = sorted(list(market_data.keys()), reverse=True)

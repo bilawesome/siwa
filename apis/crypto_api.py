@@ -1,7 +1,6 @@
-from typing import Any
+from typing import Any, List, Dict
 from apis import utils
 import os
-import json
 
 import openai
 
@@ -17,7 +16,7 @@ class CryptoAPI:
         source (str): Source of the data.
 
     Methods:
-        fetch_data_by_mcap(N: int) -> dict:
+        fetch_mcap_by_rank(N: int) -> dict:
             Fetch data by market capitalization and stores in a database.
         get_data(N: int):
             Abstract method to get data.
@@ -38,7 +37,31 @@ class CryptoAPI:
         self.url = url
         self.source = source
 
-    def fetch_data_by_mcap(self, N: int) -> dict:
+    def fetch_mcap_by_list(self, tokens: List[str]) -> Dict[str, float]:
+        """
+        Fetch data by list of tokens, store it in a database and return
+        the data.
+
+        Parameters:
+            tokens (List[str]): List of tokens to fetch.
+
+        Returns:
+            Dict[str, float]:
+                Dictionary with token names as keys and market cap as values.
+        """
+
+        market_data = self.get_market_caps_of_list(tokens)
+        if market_data is None:
+            return None
+
+        # Store market data in the database
+        utils.create_market_cap_database()
+        utils.store_market_cap_data(
+            market_data=market_data, source=self.source
+        )
+        return market_data
+
+    def fetch_mcap_by_rank(self, N: int) -> dict:
         """
         Fetch data by market capitalization, store it in a database and return
         the data.

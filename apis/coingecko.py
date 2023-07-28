@@ -1,6 +1,5 @@
 import logging
 from pydantic import BaseModel, ValidationError
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from apis.crypto_api import CryptoAPI
@@ -157,3 +156,36 @@ class CoinGeckoAPI(CryptoAPI):
                 raise utils.ExternalAPIDataValidationError(
                     f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
                 )
+
+    @utils.handle_request_errors
+    def get_market_caps_of_list(self, tokens: List[str]) -> Dict[str, float]:
+        """
+        Gets market cap data for the provided list of tokens from CoinGecko API.
+
+        Parameters:
+            tokens (List[str]): List of token names for which to fetch market cap data.
+
+        Returns:
+            Dict[str, float]: A dictionary with token names as keys and their market cap as values.
+        """
+        market_caps = {}
+
+        tokens_comma_sep = ",".join(tokens)
+
+        parameters = {
+            "vs_currency": self.VS_CURRENCY,
+            "ids": tokens_comma_sep,
+        }
+        response = requests.get(self.url, params=parameters)
+        data = response.json()
+
+        if data:
+            for d in data:
+                market_cap = d.get(self.MARKET_CAP_KEY)
+                name = d.get(self.NAME_KEY)
+                last_updated = d.get(self.LAST_UPDATED_KEY)
+                market_caps[market_cap] = {
+                    "name": name,
+                    "last_updated": last_updated,
+                }
+        return market_caps

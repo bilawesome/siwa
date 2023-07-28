@@ -6,6 +6,7 @@ import json
 from pydantic import BaseModel, ValidationError
 
 from apis import utils
+import time
 
 
 class CoinMarketCapMarketCapData(BaseModel):
@@ -44,6 +45,7 @@ class CoinMarketCapAPI(CryptoAPI):
 
     LIMIT = "limit"
     DATA = "data"
+    ID = "id"
     NAME = "name"
     LAST_UPDATED = "last_updated"
     QUOTE = "quote"
@@ -112,3 +114,54 @@ class CoinMarketCapAPI(CryptoAPI):
                 raise utils.ExternalAPIDataValidationError(
                     f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
                 )
+
+    @utils.handle_request_errors
+    def get_market_cap_of_token(self, id: int) -> Dict[str, float]:
+        """
+        Gets market cap data for the provided token id from CoinMarketCap API.
+
+        Parameters:
+            id (int): Token id for which to fetch market cap data.
+
+        Returns:
+            Dict[str, float]: A dictionary with market cap as keys and other metadata as values.
+        """
+        url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+        parameters = {self.ID: id}
+        response = requests.get(url, headers=self.headers, params=parameters)
+        data = response.json()
+
+        market_cap_data = {}
+        if self.DATA in data:
+            token_data = data[self.DATA][str(id)]
+            name = token_data[self.NAME]
+            last_updated = token_data[self.LAST_UPDATED]
+            market_cap = token_data[self.QUOTE][self.USD][self.MARKET_CAP]
+            market_cap_data = {
+                "name": name,
+                "market_cap": market_cap,
+                "last_updated": last_updated,
+            }
+        return market_cap_data
+
+    def get_market_caps_of_list(self, ids: List[int]) -> Dict[str, Dict[str, Any]]:
+        """
+        Gets market cap data for the provided list of token ids from CoinMarketCap API.
+
+        Parameters:
+            tokens (List[int]): List of token ids for which to fetch market cap data.
+
+        Returns:
+            Dict[str, Dict[str, Any]]: A dictionary with token names as keys and their respective market cap data as values.
+        """
+        market_caps = {}
+        for id in ids:
+            mcap_data = self.get_market_cap_of_token(id)
+            if mcap_data:
+                market_caps[mcap_data["market_cap"]] = {
+                    "name": mcap_data["name"],
+                    "last_updated": mcap_data["last_updated"],
+                }
+            time.sleep(0.2)  # To prevent hitting API rate limits
+
+        return market_caps

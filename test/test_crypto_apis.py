@@ -33,6 +33,47 @@ class TestCoinGeckoAPI(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertEqual(list(result.keys())[0], 100000)
 
+    @patch("requests.get")
+    def test_get_market_caps_of_list(self, mock_get):
+        # Prepare data
+        tokens = ['bitcoin', 'ethereum']
+        mock_response = MagicMock()
+        mock_response.json.return_value = [
+            {
+                'name': 'Bitcoin',
+                'market_cap': 600000,
+                'last_updated': '2023-06-01T10:10:10.000Z',
+            },
+            {
+                'name': 'Ethereum',
+                'market_cap': 300000,
+                'last_updated': '2023-06-01T10:10:10.000Z',
+            },
+        ]
+        mock_get.return_value = mock_response
+
+        # Call method
+        market_caps = self.coin_gecko_api.get_market_caps_of_list(tokens)
+
+        # Check call
+        mock_get.assert_called_once_with(
+            'https://api.coingecko.com/api/v3/coins/markets',
+            params={'vs_currency': 'usd', 'ids': 'bitcoin,ethereum'},
+        )
+
+        # Check result
+        expected_result = {
+            600000: {
+                'name': 'Bitcoin',
+                'last_updated': '2023-06-01T10:10:10.000Z',
+            },
+            300000: {
+                'name': 'Ethereum',
+                'last_updated': '2023-06-01T10:10:10.000Z',
+            },
+        }
+        self.assertEqual(market_caps, expected_result)
+
 
 # class TestCoinPaprikaAPI(unittest.TestCase):
 #     def setUp(self):
@@ -70,6 +111,78 @@ class TestCoinMarketCapAPI(unittest.TestCase):
         result = self.coin_market_cap_api.extract_market_cap(data)
         self.assertIsInstance(result, dict)
         self.assertEqual(list(result.keys())[0], 100000)
+
+    @patch('requests.get')
+    def test_get_market_cap_of_token(self, mock_get):
+        mock_response_data = {
+            'data': {
+                '1': {
+                    'name': 'Bitcoin',
+                    'last_updated': '2023-06-26T00:00:00.000Z',
+                    'quote': {
+                        'USD': {
+                            'market_cap': 1000000.0
+                        }
+                    }
+                }
+            }
+        }
+
+        mock_get.return_value.json.return_value = mock_response_data
+        mock_get.return_value.status_code = 200
+
+        token_id = 1
+        expected_market_cap_data = {
+            'name': 'Bitcoin',
+            'market_cap': 1000000.0,
+            'last_updated': '2023-06-26T00:00:00.000Z'
+        }
+
+        market_cap_data = self.coin_market_cap_api.get_market_cap_of_token(token_id)
+        self.assertEqual(market_cap_data, expected_market_cap_data)
+
+    @patch('requests.get')
+    def test_get_market_caps_of_list(self, mock_get):
+        mock_response_data = {
+            'data': {
+                '1': {
+                    'name': 'Bitcoin',
+                    'last_updated': '2023-06-26T00:00:00.000Z',
+                    'quote': {
+                        'USD': {
+                            'market_cap': 1000000.0
+                        }
+                    }
+                },
+                '2': {
+                    'name': 'Ethereum',
+                    'last_updated': '2023-06-26T00:00:00.000Z',
+                    'quote': {
+                        'USD': {
+                            'market_cap': 2000000.0
+                        }
+                    }
+                }
+            }
+        }
+
+        mock_get.return_value.json.return_value = mock_response_data
+        mock_get.return_value.status_code = 200
+
+        ids = [1, 2]
+        expected_market_caps = {
+            1000000.0: {
+                'name': 'Bitcoin',
+                'last_updated': '2023-06-26T00:00:00.000Z'
+            },
+            2000000.0: {
+                'name': 'Ethereum',
+                'last_updated': '2023-06-26T00:00:00.000Z'
+            }
+        }
+
+        market_caps = self.coin_market_cap_api.get_market_caps_of_list(ids)
+        self.assertEqual(market_caps, expected_market_caps)
 
 
 class TestCryptoCompareAPI(unittest.TestCase):
@@ -111,6 +224,43 @@ class TestCryptoCompareAPI(unittest.TestCase):
         self.assertEqual(result[100000]['name'], 'Bitcoin')
         self.assertEqual(result[100000]['last_updated'],
                          '2023-06-01T10:10:10.000Z')
+
+    @patch('requests.get')
+    def test_get_market_caps_of_list(self, mock_get):
+        mock_response_data = {
+            'RAW': {
+                'BTC': {
+                    'USD': {
+                        'MKTCAP': 1000000.0,
+                        'LASTUPDATE': 1633023036
+                    }
+                },
+                'ETH': {
+                    'USD': {
+                        'MKTCAP': 2000000.0,
+                        'LASTUPDATE': 1633023036
+                    }
+                }
+            }
+        }
+
+        mock_get.return_value.json.return_value = mock_response_data
+        mock_get.return_value.status_code = 200
+
+        tokens = ['BTC', 'ETH']
+        expected_market_caps = {
+            1000000.0: {
+                'name': 'BTC',
+                'last_updated': 1633023036,
+            },
+            2000000.0: {
+                'name': 'ETH',
+                'last_updated': 1633023036,
+            }
+        }
+
+        market_caps = self.crypto_compare_api.get_market_caps_of_list(tokens)
+        self.assertEqual(market_caps, expected_market_caps)
 
 
 class TestUtils(unittest.TestCase):
