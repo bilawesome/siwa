@@ -104,16 +104,25 @@ class CoinMarketCapAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data(self, data: List[CoinMarketCapMarketCapData]):
+    # def validate_api_data(self, data: List[CoinMarketCapMarketCapData]):
+    #     """Validate data pulled from external API using Pydantic."""
+    #     for coin in data[self.DATA]:
+    #         print("coinmarketcap coind data", json.dumps(coin))
+    #         try:
+    #             CoinMarketCapMarketCapData(**coin)
+    #         except ValidationError as e:
+    #             raise utils.ExternalAPIDataValidationError(
+    #                 f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+    #             )
+
+    def validate_api_data(self, data: CoinMarketCapMarketCapData):
         """Validate data pulled from external API using Pydantic."""
-        for coin in data[self.DATA]:
-            print("coinmarketcap coind data", json.dumps(coin))
-            try:
-                CoinMarketCapMarketCapData(**coin)
-            except ValidationError as e:
-                raise utils.ExternalAPIDataValidationError(
-                    f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
-                )
+        try:
+            CoinMarketCapMarketCapData(**data)
+        except ValidationError as e:
+            raise utils.ExternalAPIDataValidationError(
+                f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+            )
 
     @utils.handle_request_errors
     def get_market_cap_of_token(self, id: int) -> Dict[str, float]:
@@ -134,6 +143,7 @@ class CoinMarketCapAPI(CryptoAPI):
         market_cap_data = {}
         if self.DATA in data:
             token_data = data[self.DATA][str(id)]
+            self.validate_api_data(token_data)
             name = token_data[self.NAME]
             last_updated = token_data[self.LAST_UPDATED]
             market_cap = token_data[self.QUOTE][self.USD][self.MARKET_CAP]

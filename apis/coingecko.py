@@ -179,6 +179,7 @@ class CoinGeckoAPI(CryptoAPI):
         response = requests.get(self.url, params=parameters)
         data = response.json()
 
+        self.validate_api_data(data)
         if data:
             for d in data:
                 market_cap = d.get(self.MARKET_CAP_KEY)

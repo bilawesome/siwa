@@ -56,9 +56,7 @@ class CryptoAPI:
 
         # Store market data in the database
         utils.create_market_cap_database()
-        utils.store_market_cap_data(
-            market_data=market_data, source=self.source
-        )
+        utils.store_market_cap_data(market_data=market_data, source=self.source)
         return market_data
 
     def fetch_mcap_by_rank(self, N: int) -> dict:

@@ -140,15 +140,24 @@ class CryptoCompareAPI(CryptoAPI):
             }
         return market_data
 
-    def validate_api_data(self, data: List[CryptoCompareSingleCoin]):
+    # def validate_api_data(self, data: List[CryptoCompareSingleCoin]):
+    #     """Validate data pulled from external API using Pydantic."""
+    #     for coin in data:
+    #         try:
+    #             CryptoCompareSingleCoin(**coin)
+    #         except ValidationError as e:
+    #             raise utils.ExternalAPIDataValidationError(
+    #                 f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+    #             )
+
+    def validate_api_data(self, data: CryptoCompareSingleCoinRawUSD):
         """Validate data pulled from external API using Pydantic."""
-        for coin in data:
-            try:
-                CryptoCompareSingleCoin(**coin)
-            except ValidationError as e:
-                raise utils.ExternalAPIDataValidationError(
-                    f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
-                )
+        try:
+            CryptoCompareSingleCoinRawUSD(**data)
+        except ValidationError as e:
+            raise utils.ExternalAPIDataValidationError(
+                f"Data pulled from {self.source} does not match pre-defined Pydantic data structure: {e}"
+            )
 
     @utils.handle_request_errors
     def get_market_caps_of_list(self, tokens: List[str]) -> Dict[str, Dict[str, Any]]:
@@ -175,6 +184,7 @@ class CryptoCompareAPI(CryptoAPI):
         if data and self.RAW in data:
             for token in tokens_upper:
                 if token in data[self.RAW] and self.USD in data[self.RAW][token]:
+                    self.validate_api_data(data[self.RAW][token][self.USD])
                     market_cap = data[self.RAW][token][self.USD][self.MKTCAP]
                     last_updated = data[self.RAW][token][self.USD][self.LAST_UPDATE]
                     market_caps[market_cap] = {
