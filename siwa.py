@@ -7,7 +7,6 @@ import threading
 import time
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from sentry_sdk import capture_exception, capture_message
 
 # third party
 import cmd2
