@@ -2,8 +2,6 @@ from typing import Any, List, Dict
 from apis import utils
 import os
 
-import openai
-
 import constants as c
 
 

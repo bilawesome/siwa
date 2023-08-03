@@ -1,48 +1,41 @@
+import logging
+
 from feeds.data_feed import DataFeed
 from collections import deque
 
+from apis import utils
 from apis.coinmarketcap import CoinMarketCapAPI as coinmarketcap
 from apis.coingecko import CoinGeckoAPI as coingecko
 from apis.cryptocompare import CryptoCompareAPI as cryptocompare
 
+logger = logging.getLogger()
+
 
 class MemeCoins(DataFeed):
-    NAME = 'memecoins'
+    NAME = "memecoins"
     ID = 7
     HEARTBEAT = 180
     DATAPOINT_DEQUE = deque([], maxlen=100)
-    COINGECKO = 'coingecko'
-    COINMARKETCAP = 'coinmarketcap'
-    CRYPTOCOMPARE = 'cryptocompare'
+    COINGECKO = "coingecko"
+    COINMARKETCAP = "coinmarketcap"
+    CRYPTOCOMPARE = "cryptocompare"
     SOURCES = [COINGECKO, COINMARKETCAP, CRYPTOCOMPARE]
     TOKEN_MAP = {
-        'dogecoin': {
-            COINGECKO: 'dogecoin',
-            COINMARKETCAP: 74,
-            CRYPTOCOMPARE: 'DOGE'
-        },
-        'shiba-inu': {
-            COINGECKO: 'shiba-inu',
+        "dogecoin": {COINGECKO: "dogecoin", COINMARKETCAP: 74, CRYPTOCOMPARE: "DOGE"},
+        "shiba-inu": {
+            COINGECKO: "shiba-inu",
             COINMARKETCAP: 5994,
-            CRYPTOCOMPARE: 'SHIB'
+            CRYPTOCOMPARE: "SHIB",
         },
-        'pepe': {
-            COINGECKO: 'pepe',
-            COINMARKETCAP: 24478,
-            CRYPTOCOMPARE: 'PEPE'
-        },
-        'floki': {
-            COINGECKO: 'floki',
-            COINMARKETCAP: 10804,
-            CRYPTOCOMPARE: 'FLOKI'
-        }
+        "pepe": {COINGECKO: "pepe", COINMARKETCAP: 24478, CRYPTOCOMPARE: "PEPE"},
+        "floki": {COINGECKO: "floki", COINMARKETCAP: 10804, CRYPTOCOMPARE: "FLOKI"},
     }
 
     @classmethod
     def process_source_data_into_siwa_datapoint(cls):
-        '''
+        """
         Process source data into siwa datapoint
-        '''
+        """
         res = []
         sources = [globals().get(obj) for obj in cls.SOURCES]
         for i, source in enumerate(sources):
@@ -62,4 +55,7 @@ class MemeCoins(DataFeed):
 
     @classmethod
     def create_new_data_point(cls):
-        return cls.process_source_data_into_siwa_datapoint()
+        try:
+            return cls.process_source_data_into_siwa_datapoint()
+        except utils.ExternalAPIDataValidationError as e:
+            logger.error(e)

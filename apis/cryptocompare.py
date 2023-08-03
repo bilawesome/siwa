@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Dict, List
 from pydantic import BaseModel, ValidationError
 
@@ -6,9 +5,6 @@ from apis.crypto_api import CryptoAPI
 import requests
 from apis import utils
 from apis.utils import MissingDataException
-
-
-logger = logging.getLogger()
 
 
 class CryptoCompareSingleCoinInfo(BaseModel):

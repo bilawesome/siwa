@@ -29,13 +29,7 @@ class ExternalAPIDataValidationError(Exception):
     data that implies an unsuccessful response.
     """
 
-
-class ChatGPTDataValidationError(Exception):
-    """ExternalAPIError.
-
-    An error indicating that ChatGPT python library returns an error while
-    trying to validate data pulled from an external API.
-    """
+    pass
 
 
 class ExternalAPIResponseBodyError(Exception):
