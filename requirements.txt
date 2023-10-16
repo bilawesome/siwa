@@ -63,3 +63,6 @@ websockets==9.1
 Werkzeug==2.2.2
 yarl==1.8.2
 ccxt==3.0.104
+plotly==5.17.0
+nbformat
+matplotlib

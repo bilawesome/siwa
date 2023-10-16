@@ -6,3 +6,4 @@ data.db
 .hypothesis/
 .env
 volumes/*
+eda/data

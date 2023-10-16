@@ -131,3 +131,21 @@ def handle_request_errors(func: Callable[..., Any]) -> Callable[..., Optional[An
             return None
 
     return wrapper
+
+
+def get_api_key(source: str) -> str:
+    """
+    Gets the API key from the environment variables.
+
+    Parameters:
+        source (str): Source of the data.
+
+    Returns:
+        str: API key.
+    """
+
+    key_name = f"{source.upper()}_API_KEY"
+    key = os.environ.get(key_name)
+    if key is None:
+        raise Exception(f"API key '{key_name}' not found in env vars.")
+    return key
