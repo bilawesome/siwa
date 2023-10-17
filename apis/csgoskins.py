@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 import requests
-from apis.utils import get_api_key
+try:
+    from apis.utils import get_api_key
+except ModuleNotFoundError:
+    from utils import get_api_key
 from web3 import Web3
 import json
 
@@ -117,7 +120,7 @@ class CSGOSkins:
             record_path=self.PRICES_KEY,
             meta=self.MARKET_HASH_NAME_KEY
         )
-        df.price = df.price/100
+        df[self.PRICE_KEY] = df[self.PRICE_KEY]/100
         return df
 
     def agg_data(self, df):
@@ -280,7 +283,7 @@ class CSGOSkins:
             max_iter=1000
         )
         index = adjusted_df['index'].sum()
-        index = self.cap_compared_to_prev(index)
+        # index = self.cap_compared_to_prev(index)
         return index
 
 
