@@ -1,4 +1,8 @@
-FROM python:3.11
+FROM python:3.9
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN mkdir /app/
 WORKDIR /app/
@@ -8,10 +12,5 @@ RUN pip install -r requirements.txt
 
 COPY ./ /app/
 
-# solved.... goto => site-packages/parsimonious/expressions.py and change import line to say..... from inspect import getfullargspec
-# /usr/local/lib/python3.11/site-packages
-# /usr/local/lib/python3.11/site-packages/parsimonious/expressions.py
-# RUN cd /usr/local/lib/python3.11/site-packages && var="from inspect import getfullargspec" && sed -i "1s/.*/$var/" parsimonious/expressions.py
-
 EXPOSE 5000
-CMD python siwa.py --datafeeds memecoins
+CMD python siwa.py --datafeeds csgo_index

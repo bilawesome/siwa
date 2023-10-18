@@ -64,6 +64,7 @@ class CoinGeckoMarketCapData(BaseModel):
     ath_date: str
     roi: Optional[dict]
     last_updated: str
+    # invalid_field: str
 
     class Config:
         allow_population_by_field_name = True

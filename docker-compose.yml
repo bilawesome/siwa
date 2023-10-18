@@ -16,24 +16,47 @@ services:
     env_file: .env
     environment:
       COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
+      CSGO_API_KEY: ${CSGO_API_KEY}
       # sometimes the console won't show print messages,
       # using PYTHONUNBUFFERED: 1 can fix this
       PYTHONUNBUFFERED: 1
-  # prometheus:
-  #   container_name: prometheus-svc
-  #   image: prom/prometheus
-  #   ports:
-  #     - "9091:9090"
-  #   command: --config.file=/etc/prometheus/prometheus.yml
-  #   volumes:
-  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
-  loki:
-    image: grafana/loki:2.8.2
+  siwa-monitoring:
+    build:
+      context: ./siwa-monitoring/
+    container_name: siwa-monitoring
+    image: siwa
     ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    # networks:
-    #   - loki
+      - "8001:8001"
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    env_file: "siwa-monitoring/.env"
+    environment:
+      CSGO_API_KEY: ${CSGO_API_KEY}
+  # promtail:
+  #   image: grafana/promtail:2.6.1
+  #   volumes:
+  #     # custom config will read logs from the containers of
+  #     # this project
+  #     - ./loki/promtail-config.yml:/etc/promtail/config.yml
+  #     # to read container labels and logs
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /var/lib/docker/containers:/var/lib/docker/containers
+  prometheus:
+    container_name: prometheus-svc
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"
+    command: --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  # loki:
+  #   image: grafana/loki:2.8.2
+  #   ports:
+  #     - "3100:3100"
+  #   command: -config.file=/etc/loki/local-config.yaml
+  # networks:
+  #   - loki
   # loki:
   #   image: grafana/loki:2.6.1
   #   ports:
@@ -41,15 +64,6 @@ services:
   #   volumes:
   #     # directory must be created first, with uid:gid 10001:10001
   #     - ./volumes/loki:/loki
-  promtail:
-    image: grafana/promtail:2.6.1
-    volumes:
-      # custom config will read logs from the containers of
-      # this project
-      - ./loki/promtail-config.yml:/etc/promtail/config.yml
-      # to read container labels and logs
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers:/var/lib/docker/containers
   grafana:
     image: grafana/grafana
     ports:
@@ -58,9 +72,29 @@ services:
       - GF_AUTH_BASIC_ENABLED=false
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  # grafana-dashboards:
+  #   # image: arm64v8/alpine
+  #   image: alpine
+  #   depends_on:
+  #     - grafana
+  #   volumes:
+  #     - ./grafana-data:/grafana
+  #   command: >
+  #     /bin/sh -c "
+  #       apk add --no-cache curl
+  #       echo 'waiting for grafana'
+  #       sleep 20s
+  #       cd /grafana
+  #       curl --request POST http://grafana:3000/api/datasources --header 'Content-Type: application/json' -d @datasources/loki.json
+  #       echo 'Provisioning contact points...'
+  #       curl --request POST http://grafana:3000/api/v1/provisioning/contact-points --header 'Content-Type: application/json' -d @alerting/contact-points/discord.json
+  #       echo 'Provisioning notification policies...'
+  #       curl --request PUT http://grafana:3000/api/v1/provisioning/policies --header 'Content-Type: application/json' -d @alerting/policies/discord.json
+  #       # curl --request POST http://grafana:3000/api/datasources --header 'Content-Type: application/json' -d @datasources/prometheus.json
+  #       # curl --request POST http://grafana:3000/api/dashboards/db --header 'Content-Type: application/json' -d @dashboard.json"
+  #       # curl --request POST http://grafana:3000/api/v1/provisioning/alert-rules --header 'Content-Type: application/json' -d @alert-rules/siwa-error.json
   grafana-dashboards:
-    # image: arm64v8/alpine
-    image: alpine
+    image: alpine:3.10
     depends_on:
       - grafana
     volumes:
@@ -69,13 +103,7 @@ services:
       /bin/sh -c "
         apk add --no-cache curl
         echo 'waiting for grafana'
-        sleep 20s
+        sleep 40s
         cd /grafana
-        curl --request POST http://grafana:3000/api/datasources --header 'Content-Type: application/json' -d @datasources/loki.json
-        echo 'Provisioning contact points...'
-        curl --request POST http://grafana:3000/api/v1/provisioning/contact-points --header 'Content-Type: application/json' -d @alerting/contact-points/discord.json
-        echo 'Provisioning notification policies...'
-        curl --request PUT http://grafana:3000/api/v1/provisioning/policies --header 'Content-Type: application/json' -d @alerting/policies/discord.json
-        # curl --request POST http://grafana:3000/api/datasources --header 'Content-Type: application/json' -d @datasources/prometheus.json
-        # curl --request POST http://grafana:3000/api/dashboards/db --header 'Content-Type: application/json' -d @dashboard.json"
-        # curl --request POST http://grafana:3000/api/v1/provisioning/alert-rules --header 'Content-Type: application/json' -d @alert-rules/siwa-error.json
+        curl --request POST http://grafana:3000/api/datasources --header 'Content-Type: application/json' -d @datasources.json
+        curl --request POST http://grafana:3000/api/dashboards/db --header 'Content-Type: application/json' -d @dashboard.json"

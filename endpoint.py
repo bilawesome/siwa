@@ -14,12 +14,14 @@ import flask
 from flask import Response
 import time
 
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from waitress import serve
 from werkzeug.exceptions import HTTPException, NotFound
 
 # our stuff
 import constants as c
 from apis import utils
+import prometheus_metrics
 
 _INF = float("inf")
 
@@ -30,6 +32,15 @@ logger = logging.getLogger("SQLLogger")
 @app.route("/")
 def blank():
     return "this is a siwa endpoint"
+
+
+@app.route("/metrics")
+def metrics():
+    # Set a value for the gauge metric
+    # prometheus_metrics.gauge.labels(label='siwa').set(10)    
+
+    # Generate the latest metrics
+    return Response(generate_latest(prometheus_metrics.registry), content_type=CONTENT_TYPE_LATEST)
 
 
 @app.route("/datafeed/<feedname>")

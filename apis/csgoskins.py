@@ -5,8 +5,41 @@ try:
     from apis.utils import get_api_key
 except ModuleNotFoundError:
     from utils import get_api_key
+# from apis.utils import get_api_key
+from prometheus_client import CollectorRegistry, Gauge
+from pydantic import BaseModel, ValidationError
+from typing import Dict, List, Optional
 from web3 import Web3
 import json
+
+import prometheus_metrics
+
+
+class CSGOSkinsPrice(BaseModel):
+    market: str
+    price: int
+    quantity: int
+    updated_at: Optional[int]
+
+
+class CSGOSkinsPrices(BaseModel):
+    market_hash_name: str
+    prices: List[CSGOSkinsPrice]
+
+
+class CSGOSkinsPriceHistoryDate(BaseModel):
+    date: str
+    prices: List[CSGOSkinsPrice]
+
+
+class CSGOSkinsPriceHistory(BaseModel):
+    market_hash_name: str
+    dates: List[CSGOSkinsPriceHistoryDate]
+
+
+class CSGOSkinsPriceHistories(BaseModel):
+    meta: Dict
+    data: List[CSGOSkinsPriceHistory]
 
 
 class CSGOSkins:
@@ -67,7 +100,18 @@ class CSGOSkins:
             self.CONTENT_TYPE_KEY: self.CONTENT_TYPE
         }
         # Init web3
-        self.w3 = Web3(Web3.HTTPProvider(self.GOERLI_URL+self.infura_key))
+        self.w3 = Web3(Web3.HTTPProvider(self.GOERLI_URL + self.infura_key))
+
+    def validate_api_data(self, model: BaseModel, data):
+        """Validate data pulled from external API using Pydantic."""
+        try:
+            for item in data:
+                model(**item)
+        except ValidationError as e:
+            raise Exception(
+                f"Data pulled from {self.base_url} does not match "
+                f"pre-defined Pydantic data structure: {e}"
+            )
 
     def get_prices(self, range=DEFAULT_RANGE, agg=DEFAULT_AGG):
         """
@@ -94,6 +138,7 @@ class CSGOSkins:
         response = requests.request('GET', url,
                                     headers=self.headers, json=payload)
         data = response.json()
+        self.validate_api_data(CSGOSkinsPrices, data["data"])
         return data
 
     def get_prices_df(self, range=DEFAULT_RANGE, agg=DEFAULT_AGG):
@@ -138,7 +183,7 @@ class CSGOSkins:
         pd.DataFrame
             A DataFrame containing the aggregated data.
         """
-        df = df.groupby(self.MARKET_HASH_NAME_KEY)[self.PRICE_KEY, self.QUANTITY_KEY]\
+        df = df.groupby(self.MARKET_HASH_NAME_KEY)[[self.PRICE_KEY, self.QUANTITY_KEY]]\
             .agg(price=pd.NamedAgg(column=self.PRICE_KEY, aggfunc='min'),
                  quantity=pd.NamedAgg(column=self.QUANTITY_KEY, aggfunc='sum'))\
             .reset_index()
@@ -284,6 +329,10 @@ class CSGOSkins:
         )
         index = adjusted_df['index'].sum()
         # index = self.cap_compared_to_prev(index)
+
+        # Set prometheus metric to index
+        print(f'Set prometheus metric to index {index}')
+        prometheus_metrics.csgo_index_gauge.set(index)
         return index
 
 
