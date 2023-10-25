@@ -123,3 +123,10 @@ docker-compose up -d
 # Verify that containers are running
 docker ps
 ```
+
+
+
+## Prometheus Metrics
+Siwa has an exposed "metrics/" endpoint. This endpoint is consumed and scraped by a Prometheus server hosted by Overlay.
+
+In production deployment, this metrics endpoint should be accessible to the Prometheus server.
