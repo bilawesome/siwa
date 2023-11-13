@@ -185,6 +185,9 @@ class CSGOSkins:
             .agg(price=pd.NamedAgg(column=self.PRICE_KEY, aggfunc='min'),
                  quantity=pd.NamedAgg(column=self.QUANTITY_KEY, aggfunc='sum'))\
             .reset_index()
+        for row in df.to_dict('records'):
+            prometheus_metrics.csgo_price_gauge.labels(
+                market_hash_name=row['market_hash_name']).set(row['price'])
         return df
 
     def get_caps(self,
